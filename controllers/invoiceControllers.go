@@ -28,7 +28,7 @@ func (ic InvoiceController) GetAllInvoicesFromPeriod(c *gin.Context) {
 	toDate := c.GetHeader("to_date")
 	switch {
 	case fromDate != "" && toDate == "":
-		err := ic.Database.Where("issued_date >= ?", fromDate).Find(&p).Error
+		err := ic.Database.Where("due_date >= ?", fromDate).Find(&p).Error
 		if err != nil {
 			c.JSON(400, gin.H{
 				"Error": "Query failed: " + err.Error(),
@@ -36,7 +36,7 @@ func (ic InvoiceController) GetAllInvoicesFromPeriod(c *gin.Context) {
 			return
 		}
 	case fromDate == "" && toDate != "":
-		err := ic.Database.Where("issued_date <= ?", toDate).Find(&p).Error
+		err := ic.Database.Where("due_date <= ?", toDate).Find(&p).Error
 		if err != nil {
 			c.JSON(400, gin.H{
 				"Error": "Query failed: " + err.Error(),
@@ -44,7 +44,7 @@ func (ic InvoiceController) GetAllInvoicesFromPeriod(c *gin.Context) {
 			return
 		}
 	case fromDate != "" && toDate != "":
-		err := ic.Database.Where("issued_date BETWEEN ? AND ?", fromDate, toDate).Find(&p).Error
+		err := ic.Database.Where("due_date BETWEEN ? AND ?", fromDate, toDate).Find(&p).Error
 		if err != nil {
 			c.JSON(400, gin.H{
 				"Error": "Query failed: " + err.Error(),
@@ -97,8 +97,8 @@ func (ic InvoiceController) CreateInvoice(c *gin.Context) {
 	p.FeeRate = constants.ADMINISTRATIVE_FEE
 	p.TaxRate = constants.GOVERNMENT_TAXES
 
-	p.Fee = ic.calculateInvoiceFeeAmount(p.PaymentAmount)
 	p.Tax = ic.calculateInvoiceTaxAmount(p.PaymentAmount)
+	p.Fee = ic.calculateInvoiceFeeAmount(p.PaymentAmount)
 	p.TotalAmount = ic.calculateInvoiceTotalAmount(p.PaymentAmount)
 
 	err = ic.Database.Create(&p).Error
@@ -115,7 +115,7 @@ func (ic InvoiceController) CreateInvoice(c *gin.Context) {
 
 
 func (ic InvoiceController) calculateInvoiceTotalAmount(paymentAmount float64) float64 {
-	return paymentAmount * (1 + constants.GOVERNMENT_TAXES) * constants.ADMINISTRATIVE_FEE
+	return paymentAmount * (1 + (1+constants.GOVERNMENT_TAXES)*constants.ADMINISTRATIVE_FEE)
 }
 
 func (ic InvoiceController) calculateInvoiceTaxAmount(paymentAmount float64) float64 {
@@ -123,5 +123,5 @@ func (ic InvoiceController) calculateInvoiceTaxAmount(paymentAmount float64) flo
 }
 
 func (ic InvoiceController) calculateInvoiceFeeAmount(paymentAmount float64) float64 {
-	return paymentAmount * constants.ADMINISTRATIVE_FEE
+	return paymentAmount * (1+constants.GOVERNMENT_TAXES)*constants.ADMINISTRATIVE_FEE
 }
