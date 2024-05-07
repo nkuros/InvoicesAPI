@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/nkuros/invoices-api/constants"
@@ -79,19 +78,6 @@ func (ic InvoiceController) CreateInvoice(c *gin.Context) {
 			"Error": "Cannot bind JSON: " + err.Error(),
 		})
 		return
-	}
-
-	type Invoice struct {
-		gorm.Model
-		IssuedDate    time.Time
-		PaymentAmount float64
-		Fee           float64
-		FeeRate       float64
-		Tax           float64
-		TaxRate       float64
-		TotalAmount   float64
-		DueDate       time.Time
-		Status        string
 	}
 
 	p.FeeRate = constants.ADMINISTRATIVE_FEE
