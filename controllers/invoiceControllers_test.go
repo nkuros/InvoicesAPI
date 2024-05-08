@@ -73,11 +73,11 @@ func TestGetAllInvoicesFromPeriod(t *testing.T) {
 
 	t.Run("GetAllInvoicesFromPeriod_WithFromDateHeader", func(t *testing.T) {
 		// Set up the mock database response
-		mockTime,_ := time.Parse(time.RFC3339, "2024-05-07T14:57:53.8867612-03:00")
-		outOfRangemockTime,_ := time.Parse(time.RFC3339, "2023-05-07T14:57:53.8867612-02:00")
+		mockTime ,_ := time.Parse(time.RFC3339, "2024-05-07T14:57:53.8867612-03:00")
+		mockTime2, _ := time.Parse(time.RFC3339, "2023-05-07T14:57:53.8867612-02:00")
 		rows := sqlmock.NewRows([]string{"id", "amount", "tax", "fee","due_date" }).
 			AddRow(1, 100.0, 10.0, 5.0, mockTime).
-			AddRow(2, 200.0, 20.0, 10.0,outOfRangemockTime)
+			AddRow(2, 200.0, 20.0, 10.0,mockTime2)
 
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM \"invoices\" WHERE due_date \u003e= $1 AND \"invoices\".\"deleted_at\" IS NULL")).WillReturnRows(rows)
 
@@ -107,10 +107,10 @@ func TestGetAllInvoicesFromPeriod(t *testing.T) {
 	t.Run("GetAllInvoicesFromPeriod_WithToDateHeader", func(t *testing.T) {
 		// Set up the mock database response
 		mockTime,_ := time.Parse(time.RFC3339, "2022-05-07T14:57:53.8867612-02:00")
-		outOfRangemockTime,_ := time.Parse(time.RFC3339, "2023-05-07T14:57:53.8867612-03:00")
+		mockTime2,_ := time.Parse(time.RFC3339, "2023-05-07T14:57:53.8867612-03:00")
 		rows := sqlmock.NewRows([]string{"id", "amount", "tax", "fee","due_date" }).
 			AddRow(1, 100.0, 10.0, 5.0, mockTime).
-			AddRow(2, 200.0, 20.0, 10.0,outOfRangemockTime)
+			AddRow(2, 200.0, 20.0, 10.0,mockTime2)
 			
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM \"invoices\" WHERE due_date \u003c= $1 AND \"invoices\".\"deleted_at\" IS NULL")).WillReturnRows(rows)
 
@@ -141,10 +141,10 @@ func TestGetAllInvoicesFromPeriod(t *testing.T) {
 	t.Run("GetAllInvoicesFromPeriod_WitBothhHeaders", func(t *testing.T) {
 		// Set up the mock database response
 		mockTime,_ := time.Parse(time.RFC3339, "2024-05-07T14:57:53.8867612-03:00")
-		outOfRangemockTime,_ := time.Parse(time.RFC3339, "2022-05-07T14:57:53.8867612-02:00")
+		mockTime2,_ := time.Parse(time.RFC3339, "2022-05-07T14:57:53.8867612-02:00")
 		rows := sqlmock.NewRows([]string{"id", "amount", "tax", "fee","due_date" }).
 			AddRow(1, 100.0, 10.0, 5.0, mockTime).
-			AddRow(2, 200.0, 20.0, 10.0,outOfRangemockTime)
+			AddRow(2, 200.0, 20.0, 10.0,mockTime2)
 			
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM \"invoices\" WHERE (due_date BETWEEN $1 AND $2) AND \"invoices\".\"deleted_at\" IS NULL")).WillReturnRows(rows)
 
@@ -219,11 +219,11 @@ func TestCreateInvoice(t *testing.T) {
 	// Set Router
 	router.POST("/invoices", controller.CreateInvoice)
 	t.Run("CreateInvoice", func(t *testing.T) {
-
+		// Set up the mock database response
 		now ,_ := time.Parse(time.RFC3339, "2022-05-07T14:57:53.8867612-02:00")
 		rows := sqlmock.NewRows([]string{"id", "created_at", "updated_at", "fee","fee_rate","tax","tax_rate","total_amount","due_date","status"}).
 			AddRow(1, now, now, 400, 0.04,1000,0.1,10000,now,"Pending")
-		// Set up the mock database response
+
 		mock.ExpectBegin()
 		mock.ExpectQuery(regexp.QuoteMeta("INSERT INTO \"invoices\" (\"created_at\",\"updated_at\",\"deleted_at\",\"issued_date\",\"payment_amount\",\"fee\",\"fee_rate\",\"tax\",\"tax_rate\",\"total_amount\",\"due_date\",\"status\") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING \"id\"")).
 			WillReturnRows(rows)
@@ -251,7 +251,7 @@ func TestCreateInvoice(t *testing.T) {
 		if rec.Body.String() != expectedBody {
 			t.Errorf("Expected response body %s, but got %s", expectedBody, rec.Body.String())
 		}
-		
+
 		assert.Equal(t,expectedBody,rec.Body.String())
 	})
 
