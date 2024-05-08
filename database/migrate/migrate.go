@@ -20,13 +20,11 @@ func init() {
 
 func main() {
 	db := database.GetDatabase()
-	db.AutoMigrate(
-		&models.Invoice{},
-		&models.User{},
-		&models.Customer{},
-		&models.BankAccount{},
-		&models.Company{},
-	)
+	db.AutoMigrate(&models.Invoice{})
+	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.BankAccount{})
+	db.AutoMigrate(	&models.Customer{})
+	db.AutoMigrate(	&models.Company{})
 	fmt.Println("Migration complete")
 }
 

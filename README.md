@@ -17,7 +17,7 @@ to run API:
 
 to run migrations (if needed): 
 
-` go run migrate/migrate.go`
+` go run ./database/migrate/migrate.go`
 
 to run tests:
 
