@@ -53,11 +53,9 @@ example payload:
 ## File structure:
 
 main.go:
-
 initializes DB and sets routers
 
 invoiceRouters.go:
-
 Sets the Paths and calls controllers in order to execute business logic
 
 models.go:
