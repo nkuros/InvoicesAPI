@@ -22,22 +22,22 @@ func NewInvoiceController(db *gorm.DB) *InvoiceController {
 func (ic InvoiceController) GetAllInvoicesFromPeriod(c *gin.Context) {
 	var p []models.Invoice
 
-	
 	fromDate := c.GetHeader("from_date")
 	toDate := c.GetHeader("to_date")
+
 	switch {
 	case fromDate != "" && toDate == "":
 		err := ic.Database.Where("due_date >= ?", fromDate).Find(&p).Error
 		if err != nil {
-			c.JSON(400, gin.H{
-				"Error": "Query failed: " + err.Error(),
+			c.JSON(http.StatusBadRequest, gin.H{
+				"Error": "Query failed : " + err.Error(),
 			})
 			return
 		}
 	case fromDate == "" && toDate != "":
 		err := ic.Database.Where("due_date <= ?", toDate).Find(&p).Error
 		if err != nil {
-			c.JSON(400, gin.H{
+			c.JSON(http.StatusBadRequest, gin.H{
 				"Error": "Query failed: " + err.Error(),
 			})
 			return
@@ -45,7 +45,7 @@ func (ic InvoiceController) GetAllInvoicesFromPeriod(c *gin.Context) {
 	case fromDate != "" && toDate != "":
 		err := ic.Database.Where("due_date BETWEEN ? AND ?", fromDate, toDate).Find(&p).Error
 		if err != nil {
-			c.JSON(400, gin.H{
+			c.JSON(http.StatusBadRequest, gin.H{
 				"Error": "Query failed: " + err.Error(),
 			})
 			return
@@ -53,16 +53,14 @@ func (ic InvoiceController) GetAllInvoicesFromPeriod(c *gin.Context) {
 	default:
 		err := ic.Database.Find(&p).Error
 		if err != nil {
-			c.JSON(400, gin.H{
+			c.JSON(http.StatusBadRequest, gin.H{
 				"Error": "Query failed: " + err.Error(),
 			})
 			return
 		}
 	}
 
-	c.IndentedJSON(http.StatusOK, p)
-
-
+	c.JSON(http.StatusOK, p)
 
 
 }
@@ -74,7 +72,7 @@ func (ic InvoiceController) CreateInvoice(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&p)
 	if err != nil {
-		c.JSON(400, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
 			"Error": "Cannot bind JSON: " + err.Error(),
 		})
 		return
@@ -89,13 +87,13 @@ func (ic InvoiceController) CreateInvoice(c *gin.Context) {
 
 	err = ic.Database.Create(&p).Error
 	if err != nil {
-		c.JSON(400, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
 			"Error": "Error creating Invoice: " + err.Error(),
 		})
 		return
 	}
 
-	c.JSON(200, p)
+	c.JSON(http.StatusCreated, p)
 }
 
 

@@ -19,7 +19,7 @@ func ConnectDB(config *initializers.Config) {
 	if err != nil {
 		log.Fatal("Failed to connect to the Database")
 	}
-	fmt.Println("? Connected Successfully to the Database")
+	fmt.Println("Connected Successfully to the Database")
 }
 
 func GetDatabase() *gorm.DB {
