@@ -22,9 +22,8 @@ func NewInvoiceController(db *gorm.DB) *InvoiceController {
 func (ic InvoiceController) GetAllInvoicesFromPeriod(c *gin.Context) {
 	var p []models.Invoice
 
-	fromDate := c.GetHeader("from_date")
-	toDate := c.GetHeader("to_date")
-
+	fromDate := c.Query("from_date")
+	toDate := c.Query("to_date") 
 	switch {
 	case fromDate != "" && toDate == "":
 		err := ic.Database.Where("due_date >= ?", fromDate).Find(&p).Error

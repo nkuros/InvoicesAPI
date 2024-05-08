@@ -82,8 +82,7 @@ func TestGetAllInvoicesFromPeriod(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM \"invoices\" WHERE due_date \u003e= $1 AND \"invoices\".\"deleted_at\" IS NULL")).WillReturnRows(rows)
 
 		// Create a new HTTP request
-		req, _ := http.NewRequest("GET", "/invoices", nil)
-		req.Header.Set("from_date", "2022-01-30T04:20:28-02:00")
+		req, _ := http.NewRequest("GET", "/invoices?from_date=2022-01-30T04:20:28-02:00", nil)
 
 
 		// // Create a new HTTP response recorder
@@ -115,9 +114,8 @@ func TestGetAllInvoicesFromPeriod(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM \"invoices\" WHERE due_date \u003c= $1 AND \"invoices\".\"deleted_at\" IS NULL")).WillReturnRows(rows)
 
 		// Create a new HTTP request
-		req, _ := http.NewRequest("GET", "/invoices", nil)
+		req, _ := http.NewRequest("GET", "/invoices?to_date=2024-05-06T14:57:53.8867612-03:00", nil)
 
-		req.Header.Set("to_date", "2024-05-06T14:57:53.8867612-03:00")
 
 		// // Create a new HTTP response recorder
 		rec := httptest.NewRecorder()
@@ -149,9 +147,7 @@ func TestGetAllInvoicesFromPeriod(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM \"invoices\" WHERE (due_date BETWEEN $1 AND $2) AND \"invoices\".\"deleted_at\" IS NULL")).WillReturnRows(rows)
 
 		// Create a new HTTP request
-		req, _ := http.NewRequest("GET", "/invoices", nil)
-		req.Header.Set("from_date", "2021-01-30T04:20:28-02:00")
-		req.Header.Set("to_date", "2023-11-30T04:20:28-02:00")
+		req, _ := http.NewRequest("GET", "/invoices?from_date=2021-01-30T04:20:28-02:00&to_date=2023-11-30T04:20:28-02:00", nil)
 
 		// // Create a new HTTP response recorder
 		rec := httptest.NewRecorder()
@@ -175,12 +171,10 @@ func TestGetAllInvoicesFromPeriod(t *testing.T) {
 		assert.Equal(t,expectedBody,rec.Body.String())
 	})
 	t.Run("GetAllInvoicesFromPeriod_BadRequest", func(t *testing.T) {
-
-
+		rows := sqlmock.NewRows([]string{"id", "amount", "tax", "fee","due_date" })
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM \"invoices\" WHERE (due_date BETWEEN $1 AND $2) AND \"invoices\".\"deleted_at\" IS NULL")).WillReturnRows(rows)
 		// Create a new HTTP request
-		req, _ := http.NewRequest("GET", "/invoices", nil)
-		req.Header.Set("to_date", "2021-01-30T04:20:28-02:00")
-		req.Header.Set("from_date", "2023-11-30T04:20:28-02:00")
+		req, _ := http.NewRequest("GET", "/invoices?from_date=2023-01-30T04:20:28-02:00&to_date=2021-11-30T04:20:28-02:00", nil)
 
 		// // Create a new HTTP response recorder
 		rec := httptest.NewRecorder()
@@ -189,7 +183,19 @@ func TestGetAllInvoicesFromPeriod(t *testing.T) {
 		// Perform the request
 		router.ServeHTTP(rec, req)
 
-		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		// Check the response status code
+		if rec.Code != http.StatusOK {
+			t.Errorf("Expected status code %d, but got %d", http.StatusOK, rec.Code)
+		}
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+
+		expectedBody := `[]`
+		if rec.Body.String() != expectedBody {
+			t.Errorf("Expected response body %s, but got %s", expectedBody, rec.Body.String())
+		}
+		
+		assert.Equal(t,expectedBody,rec.Body.String())
 
 	})
 }		
